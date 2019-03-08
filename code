@@ -1,59 +1,63 @@
-#include <Servo.h>
-#include <Pixy2.h>
+#include <Servo.h> // Library for servos
+#include <Pixy2.h> // Libraries for PIXYCAM
 #include <SPI.h>  
 
 
-// This is the main Pixy object 
-Pixy2 pixy;
-Servo myservo1;
-Servo myservo2;
-int sigBlue = 1;
-int sigGreen = 2;
-void setup()
-{
-  myservo1.attach(3);
-  myservo2.attach(4);
+Pixy2 pixy; // This is the main Pixy object 
+Servo myservo1; // Servo for RED
+Servo myservo2; // Servo for BLUE
+const int trigPin = 6;
+const int echoPin = 5;
+long duration;
+int distance;
+int pos = 0; //s tores servo position
+void setup(){
+  myservo1.attach(9); // Attach servo for RED
+  myservo2.attach(3); // Attach servo for BLUE
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
   Serial.begin(9600);
-  Serial.print("Starting...\n");
-  
-  pixy.init();
+  pixy.init(); // Initiate PIXYCAM
 }
 
-void loop()
-{ 
+void loop(){ 
   int i; 
-  // grab blocks!
-  pixy.ccc.getBlocks();
-  
-  // If there are detect blocks, print them!
-  if (pixy.ccc.numBlocks)
+  pixy.ccc.getBlocks(); // grab blocks!
+  if (pixy.ccc.numBlocks)// If there are detect blocks, print them!
   {
     Serial.print("Detected ");
     Serial.println(pixy.ccc.numBlocks);
     for (i=0; i<pixy.ccc.numBlocks; i++)
+    digitalWrite(trigPin, LOW); // Clears the trigPin
+    delayMicroseconds(2); // Sets the trigPin on HIGH state for 10 micro seconds
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW); // Reads the echoPin, returns the sound wave travel time in microseconds
+    duration = pulseIn(echoPin, HIGH); // Calculating the distance
+    distance= duration*0.034/2; // Converts distance
     {
       Serial.print("  block ");
       Serial.print(i);
       Serial.print(": ");
-      pixy.ccc.blocks[i].print();
-      {
-      if (uint16_t m_signature = 2){
+      pixy.ccc.blocks[i].print(); // Prints PIXYCAM values
+      Serial.print("Distance: "); // Prints the distance on the Serial Monitor
+      Serial.println(distance);
+    }
+      if (uint16_t m_signature = 2 && (distance < 5)){ // if color signature is RED and distance is less than the value denoted
       {
       myservo1.write(0);
-      delay(500);
+      delay(2500);
       myservo1.write(180);
       delay(500);
-      myservo1.detach();
-
       }
       }
-      if (uint16_t m_signature = 1){
+      if (uint16_t m_signature = 1 && (distance < 5)){ // if color signature is BLUE and distance is less than the value denoted
       {
-        myservo1.write(180);
-        delay(500);
+      myservo1.write(0);
+      delay(2500);
+      myservo1.write(180);
+      delay(500);
       }
       }
-    }
+  }
       }
-}
-}
